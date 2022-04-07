@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500&display=swap" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="static/fonts/icomoon/style.css">
+
+    <link href='static/fullcalendar/packages/core/main.css' rel='stylesheet' />
+    <link href='static/fullcalendar/packages/daygrid/main.css' rel='stylesheet' />
+    <link href='static/css/offcanvas-content.css' rel='stylesheet' />
+
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <title>Welcome</title>
+
+    <script>
+        $(document).ready(function () {
+            $('#cards-box').html('');
+            listing();
+        });
+
+        function listing(status) {
+            $('#cards-box').html('');
+            $.ajax({
+                type: "GET",
+                url: "/list",
+                data: {},
+                success: function (response) {
+                    let application = response['application'];
+                    for (let i = 0; i < application.length; i++) {
+                        var id = application[i]['id']
+
+                        if(typeof status =="undefined" ){
+                            make_card(application[i]['company_name'], application[i]['job_position'], application[i]['date'], application[i]['status'], id);
+                        }
+                        else if (application[i]['status'] == 'wishlist' && status == 'wishlist') {
+                            make_card(application[i]['company_name'], application[i]['job_position'], application[i]['date'], application[i]['status'], id);
+                        }
+                        else if (application[i]['status'] == 'applied' && status == 'applied') {
+                            make_card(application[i]['company_name'], application[i]['job_position'], application[i]['date'], application[i]['status'], id);
+                        }
+                        else if (application[i]['status'] == 'interview' && status == 'interview') {
+                            make_card(application[i]['company_name'], application[i]['job_position'], application[i]['date'], application[i]['status'], id);
+                        }
+                        else if (application[i]['status'] == 'rejected' && status == 'rejected') {
+                            make_card(application[i]['company_name'], application[i]['job_position'], application[i]['date'], application[i]['status'], id);
+                        }
+                    }
+                }
+            })
+        }
+
+        function delete_id(id) {
+            $.ajax({
+                type: "POST",
+                url: "/api/delete",
+                data: { 'id': id },
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        alert('삭제 완료! 안녕!')
+                        window.location.reload()
+                    }
+                }
+            });
+        }
+
+
+        function make_card(company_name, job_position, date, status, id) {
+            let temp_html =
+                `    <div class="row container">
+                        <div class="card appcard column_job">
+                            <div class="card-header">
+                                ${company_name}
+                                <button class = "btn" btn-primary onclick = "delete_id(${id})" style = "float:right; color:red;"> Delete </button>
+                            </div>
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">${job_position}</h5>
+                                <p class="card-text">${date}</p>
+                            </div>
+                        </div>
+                        <div class="column_stat">
+                            <button class="btn btn-primary stat_button" type="submit" style = "border-radius: 100%;">${status}</button>
+                        </div>
+                    </div>`;
+
+            $('#cards-box').append(temp_html);
+        }
+
+    </script>
+    <!-- Style -->
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: scroll;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+
+        .center {
+            margin: 0;
+            position: relative;
+            top: 20%;
+            left: 90%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-55%, 40%);
+        }
+
+        .createnew {
+            margin: 0;
+            position: relative;
+            top: 30%;
+            left: 90%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-0%, 50%);
+        }
+
+        .appcard {
+            margin: 0 auto;
+            position: relative;
+            /* fixed => relative 로 바꾸면 scroll down 가능 */
+            top: 100px;
+            left: 20%;
+            width: 1000px;
+            transform: translate(-27%, -20%);
+
+        }
+
+        .stat_button {
+            margin: 0 auto;
+            position: relative;
+            top: 100px;
+            left: 20%;
+            width: 100px;
+            transform: translate(-120%, -20%);
+
+        }
+
+        .bts {
+            height: 70px;
+            width: 200px;
+        }
+
+
+
+        .column_job {
+            float: left;
+            width: 70%;
+            padding: 10px;
+        }
+
+        .column_stat {
+            float: right;
+            width: 10px;
+            padding: 10px;
+
+        }
+
+        .row {
+            content: "";
+            clear: both;
+
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+
+    <!-- navbar -->
+    <div>
+        <nav class="navbar navbar-dark bg-dark">
+            <button class="navbar-brand navbar-toggler" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasWithBackdrop" aria-controls="offcanvasWithBackdrop" aria-expanded="false"
+                aria-label="Toggle navigation" style="margin-left:1rem;">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <ul class="nav nav-pills navbar-right">
+                <li class="nav-item active">
+                    <a href="/index" class="nav-link" style="color:whitesmoke">index</a>
+                </li>
+                <li class="nav-item active" style="margin-left:2rem;">
+                    <a href="/calendar" class="nav-link" style="color:whitesmoke">calendar</a>
+                </li>
+                <li class="nav-item active" style="margin-left:2rem;">
+                    <a href="/board" class="nav-link" style="color:whitesmoke">board</a>
+                </li>
+            </ul>
+
+
+
+            <a href="/logout" class="nav-link" style="color:whitesmoke; margin-right:2rem">Logout</a>
+        </nav>
+    </div>
+
+    <!-- off-canvas -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasWithBackdrop"
+        aria-labelledby="offcanvasWithBackdropLabel">
+        <div class="offcanvas-header offcanvas-head-style">
+            <h4 class="offcanvas-title" id="offcanvasWithBackdropLabel">Hi user</h4>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="content offcanvas-div-align">
+                <img class="offcanvas-content-image" src="static/images/spongebob.jpeg">
+            </div>
+            <div>
+                <ul>
+                    <li class="offcanvas-component"><a href="#" class="offcanvas-list-component">Profile</a></li>
+                    <li class="offcanvas-component"><a href="#" class="offcanvas-list-component">Another action</a></li>
+                    <li class="offcanvas-component"><a href="#" class="offcanvas-list-component">Something else here</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll Down-->
+
+    <!-- Buttons_WL, Ap, In, Re-->
+    <div>
+        <div class="center">
+            <button type="button" class="btn btn-light" onclick="listing('wishlist')">Wish List</button>
+            <button type="button" class="btn btn-light" onclick="listing('applied')">Applied</button>
+            <button type="button" class="btn btn-light" onclick="listing('interview')">Interview</button>
+            <button type="button" class="btn btn-light" onclick="listing('rejected')">Rejected</button>
+            
+        </div>
+
+        <!-- Button _ Create New  -->
+        <div class="createnew">
+            <button type="button" class="btn btn-light"> + Create New </button>
+        </div>
+    </div>
+
+
+    <!-- Card _ Application List -->
+    <div id="cards-box">
+    </div>
+
+
+    <!-- js / bootstrap component -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+    <script src="static/js/main.js"></script>
+    </div>
+
+</body>
+
+</html>

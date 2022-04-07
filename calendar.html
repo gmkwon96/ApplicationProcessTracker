@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500&display=swap" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="static/fonts/icomoon/style.css">
+
+    <link href='static/fullcalendar/packages/core/main.css' rel='stylesheet' />
+    <link href='static/fullcalendar/packages/daygrid/main.css' rel='stylesheet' />
+    <link href='static/css/offcanvas-content.css' rel='stylesheet' />
+    <link href='static/css/navbar.css' rel='stylesheet' />
+
+    <!-- Bootstrap CSS / JS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+
+
+    <script src="static/js/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <title>Welcome</title>
+
+    <!-- Style -->
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
+        }
+
+        ul {
+            list-style-type: none;
+        }
+
+        .nav>li>a:hover {
+            background-color: lightgrey;
+        }
+
+
+
+        #calendar {
+            max-width: 700px
+        }
+    </style>
+
+    <!-- JS -->
+    <script src='static/fullcalendar/packages/core/main.js'></script>
+    <script src='static/fullcalendar/packages/interaction/main.js'></script>
+    <script src='static/fullcalendar/packages/daygrid/main.js'></script>
+
+    <script>
+        function get_edit(id) {
+            $.ajax({
+                type: "GET",
+                url: "/edit",
+                data: { 'id': id },
+                success: function (response) {
+                    url = response['url']
+                    job_position = response['job_position']
+                    job_description = response['job_description']
+                    company_name = response['company_name']
+                    company_location = response['company_location']
+                    date = response['date']
+                    memo = response['memo']
+                    status = response['status']
+
+                    console.log(url)
+                    console.log(company_name)
+
+                    $('#edit-url').val(url)
+                    $("#edit-job-position").val(job_position)
+                    $("#edit-job-description").val(job_description)
+                    $("#edit-company-name").val(company_name)
+                    $("#edit-company-location").val(company_location)
+                    $("#edit-date").val(date)
+                    $('#edit-memo').val(memo)
+                    $('#edit-status').val(status)
+
+                }
+            })
+        }
+
+        function get_list(arr) {
+            $.ajax({
+                type: "GET",
+                url: "/list",
+                data: {},
+                async: !1,
+                success: function (response) {
+                    let app = response['application'];
+                    for (let i = 0; i < app.length; i++) {
+                        job_position = app[i]['job_position']
+                        date = app[i]['date']
+                        id = app[i]['id']
+                        arr.push({ 'title': job_position, 'start': date, 'id': id })
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var all_applications = []
+            get_list(all_applications)
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                plugins: ['interaction', 'dayGrid'],
+                defaultDate: today(),
+                editable: true,
+                eventLimit: true, // allow "more" link when too many events
+                eventClick: function (info) {
+                    $('#editModal').modal('show');
+                    get_edit(info.event.id)
+                    $('#hidden_id').val(info.event.id)
+                },
+                events: all_applications
+            });
+            console.log(all_applications)
+
+            calendar.render();
+
+            // if click calendar day grid
+            calendar.on('dateClick', function (info) {
+                $('#exampleModal').modal('show');
+                $('#Apply-date').val(info.dateStr);
+            });
+
+            //console.log(calendar.getEventById('2022-02-01-1'))
+        });
+
+
+        function generate_id(date) {
+            //console.log(date)
+            var str = ''
+            $.ajax({
+                type: "GET",
+                url: "/list",
+                data: {},
+                async: !1,
+                success: function (response) {
+                    let arr = response['application'];
+                    count = 0;
+                    for (i = 0; i < arr.length; i++) {
+                        if (arr[i]['date'] == date) {
+                            count += 1
+                        }
+                    }
+                    str_date = String(date).split("-").join('')
+                    str = String(str_date) + String(count);
+                },
+                error: function () {
+                    console.log('no data available');
+                }
+            })
+            return str;
+        }
+
+        // get today's date
+        function today() {
+            var now = new Date();
+
+            var day = ("0" + now.getDate()).slice(-2);
+            var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+            var today = now.getFullYear() + "-" + (month) + "-" + (day);
+            return today
+        }
+
+
+        $("#exampleModal").on("show.bs.modal", function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var recipient = button.data("whatever"); // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this);
+            modal.find(".modal-title").text("New message to " + recipient);
+            modal.find(".modal-body input").val(recipient);
+        });
+
+
+        function remove_input_value() {
+            $("#job-description").val('');
+            $("#User-memo").val('');
+            document
+                .querySelectorAll("input")
+                .forEach((input) => {
+                    input.value = "";
+                    input.removeAttribute("value");
+                });
+        }
+
+        function request_url() {
+            let url = $("#input-url").val();
+            $.ajax({
+                type: "POST",
+                url: "/memo",
+                data: { 'url_give': url },
+                success: function (response) {
+                    if (response["result"] == "success") {
+                        $("#job-position-name").val(response["position"])
+                        $("#company-name").val(response["company_name"])
+                        $("#company-location").val(response["company_location"])
+                        $("#job-description").val(response["job_info"])
+                        alert("Success!");
+                    } else {
+                        alert("Server Error!");
+                    }
+                }
+            });
+        }
+
+        function save() {
+            url = $('#input-url').val()
+            job_position = $("#job-position-name").val()
+            job_description = $("#job-description").val()
+            company_name = $("#company-name").val()
+            company_location = $("#company-location").val()
+            date = $("#Apply-date").val()
+            memo = $('#User-memo').val()
+            status = $('#status').val()
+            id = generate_id(date)
+
+            if (job_position == '') {
+                alert('job position을 입력해주세요!')
+                $('#job-position-name').focus()
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "/save",
+                    data: {
+                        'id_str': id,
+                        'url': url,
+                        'job_position': job_position,
+                        'job_description': job_description,
+                        'company_name': company_name,
+                        'company_location': company_location,
+                        'date': date,
+                        'memo': memo,
+                        'status': status
+                    },
+                    success: function (response) {
+                        alert(response['success_msg'])
+                        window.location.reload();
+                    }
+                })
+            }
+        }
+
+        function edit(arg_id) {
+            url = $('#edit-url').val()
+            job_position = $("#edit-job-position").val()
+            job_description = $("#edit-job-description").val()
+            company_name = $("#edit-company-name").val()
+            company_location = $("#edit-company-location").val()
+            date = $("#edit-date").val()
+            memo = $('#edit-memo').val()
+            status = $('#edit-status').val()
+            id = arg_id
+
+            if (job_position == '') {
+                alert('job position을 입력해주세요!')
+                $('#job-position-name').focus()
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "/edit",
+                    data: {
+                        'id_str': id,
+                        'url': url,
+                        'job_position': job_position,
+                        'job_description': job_description,
+                        'company_name': company_name,
+                        'company_location': company_location,
+                        'date': date,
+                        'memo': memo,
+                        'status': status
+                    },
+                    success: function (response) {
+                        alert(response['success_msg'])
+                        window.location.reload();
+                    }
+                })
+            }
+        }
+
+        function delete_id(id) {
+            $.ajax({
+                type: "POST",
+                url: "/api/delete",
+                data: { 'id': id },
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        alert('삭제 완료! 안녕!')
+                        window.location.reload()
+                    }
+                }
+            });
+        }
+    </script>
+
+</head>
+
+
+<body>
+    <!-- id field: hidden -->
+    <div style="visibility: hidden">
+        <span id="hidden_id" style="visibility: hidden;"></span>
+    </div>
+
+    <!-- navbar -->
+    <div>
+        <nav class="navbar navbar-dark bg-dark">
+            <button class="navbar-brand navbar-toggler" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasWithBackdrop" aria-controls="offcanvasWithBackdrop" aria-expanded="false"
+                aria-label="Toggle navigation" style="margin-left:1rem;">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <ul class="nav nav-pills navbar-right">
+                <li class="nav-item active">
+                    <a href="/index" class="nav-link" style="color:whitesmoke">index</a>
+                </li>
+                <li class="nav-item active" style="margin-left:2rem;">
+                    <a href="/calendar" class="nav-link" style="color:whitesmoke">calendar</a>
+                </li>
+                <li class="nav-item active" style="margin-left:2rem;">
+                    <a href="/board" class="nav-link" style="color:whitesmoke">board</a>
+                </li>
+            </ul>
+
+
+
+            <a href="/logout" class="nav-link" style="color:whitesmoke; margin-right:2rem">Logout</a>
+        </nav>
+    </div>
+
+    <!-- off-canvas -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasWithBackdrop"
+        aria-labelledby="offcanvasWithBackdropLabel">
+        <div class="offcanvas-header offcanvas-head-style">
+            <h4 class="offcanvas-title" id="offcanvasWithBackdropLabel">Hi user</h4>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="content offcanvas-div-align">
+                <img class="offcanvas-content-image" src="static/images/spongebob.jpeg">
+            </div>
+            <div>
+                <ul>
+                    <li class="offcanvas-component"><a href="#" class="offcanvas-list-component">Profile</a></li>
+                    <li class="offcanvas-component"><a href="#" class="offcanvas-list-component">Another action</a></li>
+                    <li class="offcanvas-component"><a href="#" class="offcanvas-list-component">Something else here</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Calendar -->
+    <div class="content">
+        <div class="container">
+            <div id='calendar'></div>
+        </div>
+    </div>
+
+    <!-- create modal window -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">JOB INFO</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form>
+                        <div class="url-box">
+                            <h2>URL 받아서 정보 긁어오기</h2>
+                            <input id="input-url" type="text" /> <button type="button" class="btn btn-primary"
+                                onclick="request_url()">클릭</button>
+                        </div>
+                        <div class="status">
+                            <label for="status">Board:</label>
+                            <select id="status" name="status">
+                                <option value="wishlist">Wish list</option>
+                                <option value="applied">Applied</option>
+                                <option value="interview">Interview</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="job_position_name">
+                            <label for="job_position_name" class="col-form-label">Job Position Name</label>
+                            <input type="text" id="job-position-name" class="form-control" />
+                        </div>
+
+                        <div class="company-name">
+                            <label for="company-name" class="col-form-label">company name:</label>
+                            <input type="text" class="form-control" id="company-name"></input>
+                        </div>
+                        <div class="company-location">
+                            <label for="company-location" class="col-form-label">company location:</label>
+                            <input type="text" class="form-control" id="company-location"></input>
+                        </div>
+                        <div class="Apply-date">
+                            <label for="Apply-date" class="col-form-label">Apply date:</label>
+                            <input type="date" class="form-control" id="Apply-date"></input>
+                        </div>
+                        <div class="job-description">
+                            <label for="job-description" class="col-form-label">Job Description:</label>
+                            <textarea class="form-control" id="job-description" rows="14"></textarea>
+                        </div>
+                        <div class="User-memo">
+                            <label for="User-memo" class="col-form-label">Memo:</label>
+                            <textarea class="form-control" id="User-memo" rows="14"></textarea>
+                        </div>
+                        <div class="upload-resume">
+                            >Upload Resume:
+                            <form action="/action_page.php">
+                                <input type="file" id="myFile" name="filename">
+                                <input type="submit">
+                            </form>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="save()">Save</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- edit modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">JOB INFO</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form>
+                        <div class="url-box">
+                            <h2>URL 받아서 정보 긁어오기</h2>
+                            <input id="edit-url" type="text" /> <button type="button" class="btn btn-primary"
+                                onclick="request_url()">클릭</button>
+                        </div>
+                        <div class="status">
+                            <label for="status">Board:</label>
+                            <select id="edit-status" name="status">
+                                <option value="wishlist">Wish list</option>
+                                <option value="applied">Applied</option>
+                                <option value="interview">Interview</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="job_position_name">
+                            <label for="job-position-name" class="col-form-label">Job Position Name</label>
+                            <input type="text" id="edit-job-position" class="form-control" />
+                        </div>
+
+                        <div class="company-name">
+                            <label for="company-name" class="col-form-label">company name:</label>
+                            <input type="text" class="form-control" id="edit-company-name"></input>
+                        </div>
+                        <div class="company-location">
+                            <label for="company-location" class="col-form-label">company location:</label>
+                            <input type="text" class="form-control" id="edit-company-location"></input>
+                        </div>
+                        <div class="Apply-date">
+                            <label for="Apply-date" class="col-form-label">Apply date:</label>
+                            <input type="date" class="form-control" id="edit-date"></input>
+                        </div>
+                        <div class="job-description">
+                            <label for="job-description" class="col-form-label">Job Description:</label>
+                            <textarea class="form-control" id="edit-job-description" rows="14"></textarea>
+                        </div>
+                        <div class="User-memo">
+                            <label for="User-memo" class="col-form-label">Memo:</label>
+                            <textarea class="form-control" id="edit-memo" rows="14"></textarea>
+                        </div>
+                        <div class="upload-resume">
+                            >Upload Resume:
+                            <form action="/action_page.php">
+                                <input type="file" id="myFile" name="filename">
+                                <input type="submit">
+                            </form>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="edit($('#hidden_id').val())">Edit</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"
+                        onclick="delete_id($('#hidden_id').val())">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+
+    <!-- render calendar -->
+
+
+</body>
+
+</html>

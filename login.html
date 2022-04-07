@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="static/images/icons/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="static/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="static/fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
+    <link rel="stylesheet" type="text/css" href="static/css/util.css">
+    <link rel="stylesheet" type="text/css" href="static/css/main.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        a {
+            text-decoration: none;
+        }
+        
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden
+        }
+    </style>
+
+    <script>
+        function login(id) {
+            $.ajax({
+                type: 'POST',
+                url: '/login',
+                data: {
+                    login: true
+                },
+                success: function() {
+                    alert(`you have logged in from ${id}`);
+                    window.location.href = '/';
+
+                }
+            })
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div class="limiter">
+        <div class="container-login100" style="background-image: url('static/images/bg-01.jpg');">
+            <div class="wrap-login100 p-l-110 p-r-110 p-t-62 p-b-33">
+                <form class="login100-form validate-form flex-sb flex-w">
+                    <span class="login100-form-title p-b-53">
+						Sign In With
+					</span>
+
+                    <div id="kakao" class="btn-face m-b-20" onclick="login(id)" onmouseover="" style="cursor: pointer;">
+                        <img src="static/images/icons/kakao_icon.png" alt="KAKAO"> Kakao Login
+                    </div>
+
+                    <div id="google" class="btn-google m-b-20" onclick="login(id)" onmouseover="" style="cursor: pointer;">
+                        <img src="static/images/icons/icon-google.png" alt="GOOGLE"> Google
+                    </div>
+
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
